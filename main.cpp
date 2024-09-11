@@ -96,15 +96,58 @@ string alphabeticallySortCipher(unordered_map<char, int> freqMap, const string c
     return newCipher;
 }
 
+string findWords(const string& sortedCipher, unordered_map<string, bool>& dictionary) {
+    string decipheredText;  // final deciphered text
+
+    // loop
+    for (int p = 0; p < sortedCipher.size();) {
+        string bestWord;
+        string word;
+
+        // build words starting from position "p"
+        for (int i = p; i < sortedCipher.size(); i++) {
+            word += sortedCipher[i];  // add next letter to word
+
+            // if word is found, update bestWord
+            if (dictionary.find(word) != dictionary.end() && word.length() > bestWord.length()) {
+                    bestWord = word;
+            }
+        }
+
+        // add bestWord (if found) to deciphered text
+        if (!bestWord.empty()) {
+            if (!decipheredText.empty() && decipheredText.back() != ' ') {
+                decipheredText += ' ';
+            }
+            decipheredText += bestWord;
+            p += bestWord.length();
+        } else {
+            decipheredText += sortedCipher[p];
+            p++;
+        }
+    }
+
+    return decipheredText;
+}
+
+
+
+
 int main() {
     string userCipher = readCipherFile("ciphertext.txt");
     unordered_map<string, bool> myDict = readDictionaryFile("dictionary.txt");
-
     cout << "starting cipher:\n" + userCipher << endl;
 
     unordered_map<char, int> frequencyMap = countCipherLetters(userCipher);
     string sortedCipher = alphabeticallySortCipher(frequencyMap, userCipher);
-    
+    string deCipher = findWords(sortedCipher, myDict);
+
+
     cout << "alphabetically sorted cipher:\n" + sortedCipher << endl;
+    cout << "Deciphered cipher:\n" + deCipher << endl;
+
+
+
+
     return 0;
 }
