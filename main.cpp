@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -74,27 +75,103 @@ unordered_map<char, int> countCipherLetters(const string cipher) {
     return freqMap;
 }
 
-// takes mapped of cipher characters, with user cipher
-// sorts the cipher based on highest count, then lines that up with english letter freq
-// after sorting dict of characters, goes through and 
-string alphabeticallySortCipher(unordered_map<char, int> freqMap, const string cipher) {
+// by the frequency of english alphabet,
+// find a initial mapping
+// returns mapping
+unordered_map<char, char> alphabeticallyFindKey(unordered_map<char, int> freqMap, const string cipher) {
     vector<pair<char, int>> freqVec(freqMap.begin(), freqMap.end());
     sort(freqVec.begin(), freqVec.end(), sortByFreq);
 
-    // map cipher letters to english freq based on sorted freq, dict, and english order
     unordered_map<char, char> cipherMappedOnEnglish;
     for (int i = 0; i < freqVec.size() && i < englishOrder.size(); i++) {
         cipherMappedOnEnglish[freqVec[i].first] = englishOrder[i];
     }
 
-    // generate our new cipher based on analyzed frequency
+    return cipherMappedOnEnglish;
+}
+
+// apply any mapping of letters
+// to any cipher
+// returns the new cipher (string)
+string applyKeyToCipher(unordered_map<char, char> keyMap, const string cipher) {
     string newCipher = "";
-    for (int i = 0; i < cipher.size(); i++) {
-        char newLetter = cipherMappedOnEnglish[cipher[i]];
-        newCipher.push_back(newLetter);
+    for (char c : cipher) {
+        if (isalpha(c)) {
+            char upperC = toupper(c);
+            newCipher += keyMap.at(upperC);
+        } else {
+            newCipher += c;
+        }
     }
     return newCipher;
 }
+
+// count how many words are present in a cipher
+// expects cipher and dictionary of words
+// currently grows off word length, can off # words
+int countWords(const string cipher, unordered_map<string, bool> wordsDict) {
+    int wordCount = 0;
+    for (int start = 0; start < cipher.size(); start++) {
+        string word = "";
+        for (int end = start; end < cipher.size(); end++) {
+            if (isalpha(cipher[end])) {
+                word += cipher[end];
+            }
+            string upperWord = word;
+            transform(upperWord.begin(), upperWord.end(), upperWord.begin(), ::toupper);
+
+            if (wordsDict.find(word) != wordsDict.end()) {
+                //wordCount++;
+                // INCREASING ON WORD SIZE, BETTER RESULT
+                // ALWAYS CAN REVERT TO BASE WORD COUNT +1
+                wordCount+=word.size();
+            }
+        }
+    }
+    return wordCount;
+}
+
+// swap two letters in a key and return new key
+// used for improveBySwapping
+unordered_map<char, char> swapKeyLetters(const unordered_map<char, char>& keyMap, char letter1, char letter2) {
+    unordered_map<char, char> newKey = keyMap;
+    char mappedLetter1 = newKey[letter1];
+    char mappedLetter2 = newKey[letter2];
+
+    newKey[letter1] = mappedLetter2;
+    newKey[letter2] = mappedLetter1;
+
+    return newKey;
+}
+
+// brute-force swapping of key letters to improve word count (decryption)
+// keeps operating as long as we are making improvements
+// scans entire keyspace to find an improvement
+unordered_map<char, char> improveKeyBySwapping(unordered_map<char, char> currentKey, const string& cipherText, const unordered_map<string, bool>& dictionary) {
+    bool improved = true;
+    int bestWordCount = countWords(applyKeyToCipher(currentKey, cipherText), dictionary);
+
+    while (improved) {
+        improved = false;
+        // swap every letter pairs
+        for (auto firstLetter = currentKey.begin(); firstLetter != currentKey.end(); firstLetter++) {
+            for (auto secondLetter = next(firstLetter); secondLetter != currentKey.end(); secondLetter++) {
+
+                unordered_map<char, char> newKey = swapKeyLetters(currentKey, firstLetter->first, secondLetter->first);
+                string newDecryptedText = applyKeyToCipher(newKey, cipherText);
+                int newWordCount = countWords(newDecryptedText, dictionary);
+
+                if (newWordCount > bestWordCount) {
+                    currentKey = newKey;
+                    bestWordCount = newWordCount;
+                    improved = true;
+                }
+            }
+        }
+    }
+    return currentKey;
+}
+
 
 int main() {
     string userCipher = readCipherFile("ciphertext.txt");
@@ -103,8 +180,22 @@ int main() {
     cout << "starting cipher:\n" + userCipher << endl;
 
     unordered_map<char, int> frequencyMap = countCipherLetters(userCipher);
-    string sortedCipher = alphabeticallySortCipher(frequencyMap, userCipher);
+    unordered_map<char, char> key = alphabeticallyFindKey(frequencyMap, userCipher);
+    string sortedCipher = applyKeyToCipher(key, userCipher);
     
     cout << "alphabetically sorted cipher:\n" + sortedCipher << endl;
+    int totalWords = countWords(sortedCipher, myDict);
+    cout << "total words with first key: " << totalWords << endl;
+
+    // -----------------------------
+
+    unordered_map<char, char> improvedKey = improveKeyBySwapping(key, userCipher, myDict);
+    string improvedCipher = applyKeyToCipher(improvedKey, userCipher);
+
+    cout << "improved decrypted text:\n" << improvedCipher << endl;
+
+    int improvedWordCount = countWords(improvedCipher, myDict);
+    cout << "total valid words with improved key: " << improvedWordCount << endl;
+
     return 0;
 }
