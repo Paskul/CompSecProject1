@@ -208,6 +208,9 @@ string manualSwap(string cipherText, char old, char mew) {
         if (i == old){
             i = mew;
         }
+        else if (i == mew){
+            i = old;
+        }
     }
     return cipherText;
 }
@@ -255,10 +258,6 @@ int main() {
 
     cout << "improved decrypted text:\n" << improvedCipher << endl;
 
-    string spacedImprovedCipher = spacesImproved(improvedCipher, myDict);
-
-    cout << "Improved deciphered text with spaces:\n" << spacedImprovedCipher << endl;
-
     int improvedWordCount = countWords(improvedCipher, myDict);
     cout << "total valid words with improved key: " << improvedWordCount << endl;
 
@@ -267,16 +266,38 @@ int main() {
         cout << pair.first << " = " << pair.second << endl;
     }
 
-    while(true) {
+    bool swap = true;
 
-        manuallyUpdateKey(improvedKey);
+    while(swap) {
+
+        //manuallyUpdateKey(improvedKey);
+        char a;
+        char b;
+        cout << "enter char to change: ";
+        cin >> a;
+        cout << "enter char to change to: ";
+        cin >> b;
+
 
         // Apply the new key after manual updates
-        string manuallyUpdatedCipher = applyKeyToCipher(improvedKey, userCipher);
-        cout << "\nManually updated decrypted text:\n" << spacesImproved(manuallyUpdatedCipher, myDict) << endl;
+        string manuallyUpdatedCipher = manualSwap(improvedCipher, a, b);
+        cout << "\nManually updated decrypted text:\n" << manuallyUpdatedCipher << endl;
+        improvedCipher = manuallyUpdatedCipher;
         int manualWordCount = countWords(manuallyUpdatedCipher, myDict);
-        cout << "total valid words with improved key: " << manualWordCount << endl;
+        cout << "Total valid words with improved key: " << manualWordCount << endl;
+        char p;
+        cout << "\nContinue swapping letters (y/n)? :";
+        cin >> p;
+        if (p == 'n'){
+            swap = false;
+        }
     }
+
+    string spacedImprovedCipher = spacesImproved(improvedCipher, myDict);
+
+    cout << "Improved deciphered text with spaces:\n" << spacedImprovedCipher << endl;
+
+
 
     return 0;
 }
