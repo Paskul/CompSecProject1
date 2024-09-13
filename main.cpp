@@ -215,28 +215,6 @@ string manualSwap(string cipherText, char old, char mew) {
     return cipherText;
 }
 
-void manuallyUpdateKey(unordered_map<char, char>& keyMap) {
-    char cipherLetter, newMappedLetter;
-
-            cout << "Enter the cipher letter you want to change: ";
-            cin >> cipherLetter;
-
-            // Prompt the user for the new letter to map it to
-            cout << "Enter the new letter to map '" << cipherLetter << "' to: ";
-            cin >> newMappedLetter;
-
-            // Update the mapping in the key
-            keyMap[toupper(cipherLetter)] = toupper(newMappedLetter);
-
-            // Show the updated key mapping
-            cout << "Updated Key Mapping:\n";
-            for (auto& pair : keyMap) {
-                cout << pair.first << " -> " << pair.second << endl;
-            }
-        }
-
-
-
 int main() {
     string userCipher = readCipherFile("ciphertext.txt");
     unordered_map<string, bool> myDict = readDictionaryFile("dictionary.txt");
