@@ -7,7 +7,7 @@ This program operates with the expected directory running containing:
 - README.md
 - Makefile
 
-To execute our program, make the Makefile, where you will have ____ as an executable. 
+To execute our program, make the Makefile, where you will have decipherExec as an executable. 
 
 1. Display the frequency analysis of the ciphertext.
 On execution, the program will automatically run the frequency analysis after the dictionary and cipher text are loaded as the first step (1 of 3). The analysis results will automatically be displayed after frequency is mapped from one letter to the next.
