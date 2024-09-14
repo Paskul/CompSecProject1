@@ -4,7 +4,6 @@ This program operates with the expected directory running containing:
 - ciphertext.txt
 - dictionary.txt
 - main.cpp
-- README.md
 - Makefile
 
 To execute our program, make the Makefile, where you will have decipherExec as an executable. 
