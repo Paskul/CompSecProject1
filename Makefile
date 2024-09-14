@@ -7,7 +7,7 @@ CXX = g++
 CXXFLAGS = -Wall -std=c++17
 
 # Executable name
-TARGET = cipher_cracker
+TARGET = decipherExec
 
 # Source files
 SRCS = main.cpp
