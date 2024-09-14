@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -144,6 +143,12 @@ unordered_map<char, char> swapKeyLetters(const unordered_map<char, char>& keyMap
     return newKey;
 }
 
+void printKey(unordered_map<char, char> printingKey) {
+    for (const auto& pair : printingKey) {
+        cout << pair.first << " -> " << pair.second << endl;
+    }
+}
+
 // brute-force swapping of key letters to improve word count (decryption)
 // keeps operating as long as we are making improvements
 // scans entire keyspace to find an improvement
@@ -172,30 +177,82 @@ unordered_map<char, char> improveKeyBySwapping(unordered_map<char, char> current
     return currentKey;
 }
 
-
 int main() {
     string userCipher = readCipherFile("ciphertext.txt");
+    cout << "--CIPHER LOADED--" << endl;
     unordered_map<string, bool> myDict = readDictionaryFile("dictionary.txt");
+    cout << "--DICT LOADED--" << endl;
 
-    cout << "starting cipher:\n" + userCipher << endl;
-
-    unordered_map<char, int> frequencyMap = countCipherLetters(userCipher);
-    unordered_map<char, char> key = alphabeticallyFindKey(frequencyMap, userCipher);
-    string sortedCipher = applyKeyToCipher(key, userCipher);
-    
-    cout << "alphabetically sorted cipher:\n" + sortedCipher << endl;
-    int totalWords = countWords(sortedCipher, myDict);
-    cout << "total words with first key: " << totalWords << endl;
+    cout << "Cipher:\n" << userCipher << endl;
+    int firstWords = countWords(userCipher, myDict);
+    cout << "Word points with starting cipher: " << firstWords << endl;
 
     // -----------------------------
 
+    cout << "--STARTING ALPHABETICAL FREQUENCY DECIPHER--" << endl;
+    unordered_map<char, int> frequencyMap = countCipherLetters(userCipher);
+    unordered_map<char, char> key = alphabeticallyFindKey(frequencyMap, userCipher);
+    string sortedCipher = applyKeyToCipher(key, userCipher);
+    cout << "--COMPLETED ALPHABETICAL FREQUENCY DECIPHER--" << endl;
+
+    cout << "Alphabetically made key:" << endl;
+    printKey(key);
+    cout << "Alphabetically sorted cipher:\n" + sortedCipher << endl;
+    int totalWords = countWords(sortedCipher, myDict);
+    cout << "Word points with alphabetical frequency key: " << totalWords << endl;
+
+    // -----------------------------
+
+    cout << "--STARTING BRUTE FORCE DECIPHER--" << endl;
     unordered_map<char, char> improvedKey = improveKeyBySwapping(key, userCipher, myDict);
     string improvedCipher = applyKeyToCipher(improvedKey, userCipher);
 
-    cout << "improved decrypted text:\n" << improvedCipher << endl;
+    cout << "Brute force made key:" << endl;
+    printKey(improvedKey);
+    cout << "Brute force decrypted cipher:\n" << improvedCipher << endl;
+    int improvedTotalWords = countWords(improvedCipher, myDict);
+    cout << "Word points with brute force key: " << improvedTotalWords << endl;
+    key = improvedKey;
+    
+    // -----------------------------
 
-    int improvedWordCount = countWords(improvedCipher, myDict);
-    cout << "total valid words with improved key: " << improvedWordCount << endl;
+    cout << "USER: Would you like to manually decipher/alter the key mapping?" << endl;
+    cout << "(y/n)" << endl;
+    string yesOrNo;
+    cin >> yesOrNo;
+    bool keepGoing = true;
+    while (keepGoing) {
+        if (yesOrNo == "y") {
+            char a, b;
+            cout << "Enter letter to swap: " << endl;
+            cin >> a;
+            cout << "Enter letter to swap with: " << endl;
+            cin >> b;
 
+            char newA = toupper(a);
+            char newB = toupper(b);
+            unordered_map<char, char> newKey = swapKeyLetters(key, newA, newB);
+            key = newKey;
+
+            cout << "Sucsess swap of " << a << " and " << b << endl;            
+            cout << "Would you like to continue deciphering?" << endl;
+            cout << "(y/n)" << endl;
+            cin >> yesOrNo;
+        } else if (yesOrNo == "n") {
+            cout << "Recieved 'n'. Closing program" << endl;
+            keepGoing = false;
+        } else {
+            cout << "Invalid input! Must type 'y' or 'n'" << endl;
+            cin >> yesOrNo;
+        }
+
+        cout << "Current key:" << endl;
+        printKey(key);
+        string curCipher = applyKeyToCipher(key, userCipher);
+        cout << "Current cipher:\n" << curCipher << endl;
+        int curTotalWords = countWords(curCipher, myDict);
+        cout << "Current word points:\n" << curTotalWords << endl;
+    }
+    
     return 0;
 }
